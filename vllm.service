@@ -9,6 +9,8 @@
 # Installation (as normal user -- no root):
 #   mkdir -p ~/.config/systemd/user/
 #   cp vllm.service ~/.config/systemd/user/
+#   chmod +x /srv/vllm/vllm-server.sh
+#   [ ! -d /srv/vllm/.venv ] || sudo chown -R $USER:$USER /srv/vllm/.venv
 #   systemctl --user daemon-reload
 #   systemctl --user enable --now vllm
 #

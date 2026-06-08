@@ -69,9 +69,14 @@ source ~/.bashrc
 ```bash
 mkdir -p ~/.config/systemd/user/
 cp vllm.service ~/.config/systemd/user/
+chmod +x /srv/vllm/vllm-server.sh
+# Fix ownership if .venv was created with sudo
+[ ! -d /srv/vllm/.venv ] || sudo chown -R $USER:$USER /srv/vllm/.venv
 systemctl --user daemon-reload
 systemctl --user enable --now vllm
 ```
+
+**Troubleshooting:** If the service fails with `status=203/EXEC`, the script isn't executable (`chmod +x`) or `.venv` is owned by root. Fix both, then `systemctl --user restart vllm`.
 
 ## Hermes Configuration
 
