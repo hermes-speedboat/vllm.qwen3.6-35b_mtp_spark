@@ -1,6 +1,11 @@
 # vllm.service -- Systemd user service for vLLM + Qwen3.6-35B-A3B AWQ 4-bit
 # DGX Spark (GB10, Grace Blackwell)
 #
+# Prerequisites (headless/SSH-only):
+#   sudo apt install dbus dbus-user-session
+#   sudo loginctl enable-linger $USER
+#   echo 'export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"' >> ~/.bashrc
+#
 # Installation (as normal user -- no root):
 #   mkdir -p ~/.config/systemd/user/
 #   cp vllm.service ~/.config/systemd/user/
