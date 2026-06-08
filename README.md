@@ -35,7 +35,7 @@ bash vllm-server.sh        # start server on port 8000
 
 ## Features
 
-- **Reasoning:** Enabled by default (model generates thinking tokens — handled fine by Hermes, OpenWebUI, etc.)
+- **Reasoning:** Extracted to separate `reasoning` field via `--reasoning-parser qwen3` — clean content
 - **Tool calling:** Native OpenAI `tool_calls` via `--tool-call-parser qwen3_coder`
 - **Text-only:** Vision encoder disabled (`--language-model-only`)
 - **MTP:** Speculative decoding with 2 draft tokens (`--speculative-config`)
