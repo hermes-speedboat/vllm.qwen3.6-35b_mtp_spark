@@ -37,7 +37,7 @@ WorkingDirectory=/srv/vllm
 Environment=PORT=8000
 Environment=HOST=0.0.0.0
 Environment=MAX_MODEL_LEN=262144
-Environment=GPU_MEM_UTIL=0.65
+Environment=GPU_MEM_UTIL=0.5
 Environment=LANGUAGE_ONLY=false
 Environment=NUM_SPEC_TOKENS=2
 Environment=MODEL_REPO=cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit

@@ -38,6 +38,7 @@ bash vllm-server.sh        # start server on port 8000
 - **Reasoning:** Extracted to separate `reasoning` field via `--reasoning-parser qwen3` — clean content
 - **Tool calling:** Native OpenAI `tool_calls` via `--tool-call-parser qwen3_coder`
 - **Vision:** On by default (Qwen3.6 has native vision encoder). Set `LANGUAGE_ONLY=true` to disable and save memory
+- **GPU memory:** `GPU_MEM_UTIL=0.5` (~60 GB reserved, ~30 GB actual usage) — leaves headroom for other workloads on the DGX Spark
 - **MTP:** Speculative decoding with 2 draft tokens (`--speculative-config`)
 - **No CUDA graphs:** `--enforce-eager` for instant first-request response
 - **Model name:** Served as `cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit` (not filesystem path)
@@ -90,4 +91,4 @@ hermes config set model.default cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit
 
 - **GGUF not supported:** The `qwen35` architecture is not supported by the transformers GGUF parser. Use PyTorch/safetensors format.
 - **AWQ needs float16:** `--dtype float16` is required. `bfloat16` (the default with `--dtype auto`) produces an error.
-- **OpenWebUI 404s:** `/api/tags`, `/api/v1/models` 404s are harmless — OpenWebUI probes Ollama endpoints. Configure it to use OpenAI-compatible API instead.
+- **OpenWebUI 404s:** `/api/tags`, `/api/v1/models` 404s — configure OpenWebUI to use OpenAI-compatible endpoint (`http://192.168.66.113:8000/v1`) instead of Ollama.
