@@ -1,17 +1,17 @@
-# vllm.service — Systemd User Service für vLLM + Qwen3.6-35B-A3B AWQ 4-bit
+# vllm.service — Systemd User Service for vLLM + Qwen3.6-35B-A3B AWQ 4-bit
 # DGX Spark (GB10, Grace Blackwell)
 #
-# Installation (als normaler User — kein Root):
+# Installation (as normal user — no root):
 #   mkdir -p ~/.config/systemd/user/
 #   cp vllm.service ~/.config/systemd/user/
 #   systemctl --user daemon-reload
 #   systemctl --user enable --now vllm
 #
-# Status prüfen:
+# Check status:
 #   systemctl --user status vllm
 #   journalctl --user -u vllm -f
 #
-# Stoppen / Neustarten:
+# Stop / Restart:
 #   systemctl --user stop vllm
 #   systemctl --user restart vllm
 #
@@ -25,27 +25,29 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/work/vllm-dgx-spark
+WorkingDirectory=/srv/vllm
 
+# Overridable via: systemctl --user edit vllm
 Environment=PORT=8000
 Environment=HOST=0.0.0.0
-Environment=MAX_MODEL_LEN=32768
+Environment=MAX_MODEL_LEN=262144
 Environment=GPU_MEM_UTIL=0.65
 Environment=LANGUAGE_ONLY=true
+Environment=NUM_SPEC_TOKENS=2
 
-# Server starten via Script (sourcet .venv)
-ExecStart=%h/work/vllm-dgx-spark/vllm-server.sh
+# Server startup script (sources .venv)
+ExecStart=/srv/vllm/vllm-server.sh
 
-# Sanftes Beenden — vLLM braucht Zeit zum Räumen
+# Graceful shutdown — vLLM needs time to drain
 TimeoutStopSec=120
 KillSignal=SIGTERM
 SendSIGKILL=no
 
-# Autorestart bei Crash
+# Auto-restart on crash
 Restart=on-failure
 RestartSec=15
 
-# Ressourcen
+# Resource limits
 LimitNOFILE=65536
 LimitNPROC=4096
 

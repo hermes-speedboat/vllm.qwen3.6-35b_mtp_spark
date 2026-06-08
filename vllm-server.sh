@@ -16,7 +16,7 @@ MODEL_PATH="${MODEL_DIR}/${MODEL_NAME}"
 # ----------------------------------------------------------------------
 PORT="${PORT:-8000}"
 HOST="${HOST:-0.0.0.0}"
-MAX_MODEL_LEN="${MAX_MODEL_LEN:-32768}"
+MAX_MODEL_LEN="${MAX_MODEL_LEN:-262144}"
 GPU_MEM_UTIL="${GPU_MEM_UTIL:-0.65}"
 LANGUAGE_ONLY="${LANGUAGE_ONLY:-true}"
 SP_TOK_DEFAULT=2                         # MTP default
