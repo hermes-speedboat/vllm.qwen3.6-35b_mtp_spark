@@ -64,6 +64,7 @@ ARGS=(
     "--enable-auto-tool-choice"
     "--tool-call-parser" "hermes"
     "--enforce-eager"
+    "--served-model-name" "cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit"
 )
 
 # Vision encoder off (text-only)
