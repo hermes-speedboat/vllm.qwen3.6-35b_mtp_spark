@@ -1,7 +1,7 @@
-# vllm.service — Systemd User Service for vLLM + Qwen3.6-35B-A3B AWQ 4-bit
+# vllm.service -- Systemd user service for vLLM + Qwen3.6-35B-A3B AWQ 4-bit
 # DGX Spark (GB10, Grace Blackwell)
 #
-# Installation (as normal user — no root):
+# Installation (as normal user -- no root):
 #   mkdir -p ~/.config/systemd/user/
 #   cp vllm.service ~/.config/systemd/user/
 #   systemctl --user daemon-reload
@@ -9,17 +9,16 @@
 #
 # Check status:
 #   systemctl --user status vllm
+#
+# View logs:
 #   journalctl --user -u vllm -f
 #
 # Stop / Restart:
 #   systemctl --user stop vllm
 #   systemctl --user restart vllm
-#
-# Logs:
-#   journalctl --user -u vllm --since "5 min ago"
 
 [Unit]
-Description=vLLM Server — Qwen3.6-35B-A3B (DGX Spark)
+Description=vLLM Server -- Qwen3.6-35B-A3B (DGX Spark)
 After=network-online.target
 Wants=network-online.target
 
@@ -34,11 +33,12 @@ Environment=MAX_MODEL_LEN=262144
 Environment=GPU_MEM_UTIL=0.65
 Environment=LANGUAGE_ONLY=true
 Environment=NUM_SPEC_TOKENS=2
+Environment=MODEL_REPO=cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit
 
 # Server startup script (sources .venv)
 ExecStart=/srv/vllm/vllm-server.sh
 
-# Graceful shutdown — vLLM needs time to drain
+# Graceful shutdown -- vLLM needs time to drain
 TimeoutStopSec=120
 KillSignal=SIGTERM
 SendSIGKILL=no
