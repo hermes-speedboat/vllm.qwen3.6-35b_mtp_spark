@@ -1,77 +1,88 @@
 # vLLM DGX Spark — Qwen3.6-35B-A3B (AWQ 4-bit, MoE, MTP)
 
-Setup für **DGX Spark (GB10, Grace Blackwell ARM64)** mit 128 GB Unified Memory.
+Optimized vLLM inference setup for **DGX Spark (GB10, Grace Blackwell ARM64)** with 128 GB unified memory.
 
-## Setup
+## Quickstart
 
 ```bash
 cd /srv/vllm
 git clone https://github.com/hermes-speedboat/vllm.qwen3.6-35b_mtp_spark.git .
-bash setup_vllm.sh
-bash download_model.sh
-bash vllm-server.sh
+bash setup_vllm.sh        # uv + venv + vllm + huggingface-hub
+bash download_model.sh     # ~24 GB model via snapshot_download()
+bash vllm-server.sh        # start server on port 8000
 ```
 
-## Architektur
+## Performance
 
-| Komponente | Detail |
-|---|---|
-| **Modell** | Qwen3.6-35B-A3B (MoE, 3B aktiv/Token) |
-| **Quantisierung** | AWQ 4-bit (24 GB total, ~1.5 GB aktiv/Token) |
-| **Format** | PyTorch safetensors (via huggingface_hub) |
-| **Inference** | vLLM 0.22.1 (V1 Engine) |
-| **Spec Decode** | MTP (Multi Token Prediction, 2 Drafts) |
-| **HW** | DGX Spark, GB10, 128 GB Unified Memory |
-| **Durchsatz** | 50-70 tok/s Gen, 528 tok/s Prompt |
+| Metric | Value |
+|--------|-------|
+| Generation throughput | 44-53 tok/s |
+| Prompt throughput | 26-528 tok/s |
+| MTP acceptance (1st draft) | 77-85% |
+| MTP acceptance (2nd draft) | 56-71% |
+| Mean acceptance length | 2.3-2.6 |
+| GPU KV cache usage | <1% at 256k context |
+
+## Architecture
+
+- **Model:** Qwen3.6-35B-A3B (MoE, 256 experts, 8 active/token, 3B active params/token)
+- **Quantization:** AWQ 4-bit (group_size=32), ~24 GB disk, ~1.5 GB active/forward
+- **Format:** PyTorch safetensors (via `snapshot_download` from `huggingface_hub`)
+- **Inference:** vLLM 0.22.1
+- **Spec Decode:** MTP (Multi Token Prediction), 2 draft tokens
+- **Hardware:** DGX Spark (GB10), 128 GB unified memory, ~1.5 TB/s bandwidth
+- **Why MoE + AWQ:** 3B active params/token × 0.5 bytes = 1.5 GB moved per forward pass vs 27 GB for a comparable dense FP8 model — 10x less memory bandwidth required
 
 ## Features
 
-- **Thinking deaktiviert**: `--default-chat-template-kwargs '{"enable_thinking":false}'`
-- **Text-only**: Vision-Encoder aus (`--language-model-only`)
-- **AWQ 4-bit**: via `--quantization awq --dtype float16`
-- **MTP**: via `--speculative-config '{"method":"mtp","num_speculative_tokens":2}'`
-- **32k Kontext**: `--max-model-len 32768`, KV-Cache ~0.7% Auslastung
-- **Systemd**: User-Service für Autostart (`vllm.service`)
+- **Reasoning:** Enabled by default (model generates thinking tokens — handled fine by Hermes, OpenWebUI, etc.)
+- **Tool calling:** Native OpenAI `tool_calls` via `--tool-call-parser qwen3_coder`
+- **Text-only:** Vision encoder disabled (`--language-model-only`)
+- **MTP:** Speculative decoding with 2 draft tokens (`--speculative-config`)
+- **No CUDA graphs:** `--enforce-eager` for instant first-request response
+- **Model name:** Served as `cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit` (not filesystem path)
+- **Context:** 262144 tokens (256k)
 
-## Dateien
+## Files
 
-| Datei | Beschreibung |
-|---|---|
-| `setup_vllm.sh` | Venv + vllm + huggingface-hub installieren |
-| `download_model.sh` | Modell via `snapshot_download()` von Hugging Face |
-| `vllm-server.sh` | vLLM mit optimierten Settings starten |
-| `test_vllm.sh` | API-Funktionstest |
-| `vllm.service` | Systemd User Service |
+| File | Purpose |
+|------|---------|
+| `setup_vllm.sh` | Install uv, venv, vllm, huggingface-hub |
+| `download_model.sh` | Download model via snapshot_download() |
+| `vllm-server.sh` | Start vLLM with all optimized flags |
+| `vllm.service` | Systemd user service file |
+| `test_vllm.sh` | API functional test |
 
-## Konfiguration
+## Systemd Autostart
 
-| Env Var | Default | Beschreibung |
-|---|---|---|
-| `PORT` | `8000` | Server-Port |
-| `HOST` | `0.0.0.0` | Bind-Address |
-| `MAX_MODEL_LEN` | `32768` | Kontextlänge (max 262144) |
-| `GPU_MEM_UTIL` | `0.65` | GPU Memory-Nutzung |
-| `LANGUAGE_ONLY` | `true` | Text-only (Vision aus) |
-| `NUM_SPEC_TOKENS` | `2` | MTP Drafts (0 = aus) |
-| `MODEL_REPO` | `cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit` | HF Repo |
+**Prerequisites (headless/SSH-only):**
 
-## Performance auf DGX Spark
+```bash
+sudo apt install dbus dbus-user-session
+sudo loginctl enable-linger $USER
+echo 'export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"' >> ~/.bashrc
+source ~/.bashrc
+```
 
-| Modell | Format | Durchsatz |
-|---|---|---|
-| Qwen3.6-27B | GGUF Q4_K_M | 8-13 tok/s ✗ (fehlerhaft) |
-| Qwen3.6-27B | BF16 PyTorch | 10-15 tok/s |
-| Qwen3.6-27B | FP8 | 20-25 tok/s |
-| **Qwen3.6-35B-A3B** | **AWQ 4-bit + MTP** | **50-70+ tok/s** |
+**Install:**
 
-## Warum MoE + AWQ + MTP?
+```bash
+mkdir -p ~/.config/systemd/user/
+cp vllm.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now vllm
+```
 
-- **MoE (35B-A3B)**: Nur 3B aktive Parameter pro Token statt 27B → 10x weniger Memory-Bandwidth
-- **AWQ 4-bit**: Accuracy-Aware Quantisierung → 4x kleiner als BF16 (24 GB total)
-- **MTP**: Multi-Token Prediction generiert 2 Draft-Token pro Step → 1.5-2x Speedup
+## Hermes Configuration
 
-## Quellen
+```bash
+hermes config set model.base_url http://192.168.66.113:8000/v1
+hermes config set model.provider custom
+hermes config set model.default cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit
+```
 
-- [vLLM Reasoning Outputs](https://docs.vllm.ai/en/latest/features/reasoning_outputs/)
-- [Qwen Deployment Guide](https://qwen.readthedocs.io/en/latest/deployment/vllm.html)
-- [cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit](https://huggingface.co/cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit)
+## Known Issues
+
+- **GGUF not supported:** The `qwen35` architecture is not supported by the transformers GGUF parser. Use PyTorch/safetensors format.
+- **AWQ needs float16:** `--dtype float16` is required. `bfloat16` (the default with `--dtype auto`) produces an error.
+- **OpenWebUI 404s:** `/api/tags`, `/api/v1/models` 404s are harmless — OpenWebUI probes Ollama endpoints. Configure it to use OpenAI-compatible API instead.
