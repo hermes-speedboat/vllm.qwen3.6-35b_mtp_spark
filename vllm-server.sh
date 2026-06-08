@@ -18,6 +18,7 @@ PORT="${PORT:-8000}"
 HOST="${HOST:-0.0.0.0}"
 MAX_MODEL_LEN="${MAX_MODEL_LEN:-262144}"
 GPU_MEM_UTIL="${GPU_MEM_UTIL:-0.65}"
+LANGUAGE_ONLY="${LANGUAGE_ONLY:-false}"
 SP_TOK_DEFAULT=2 # MTP default
 NUM_SPEC_TOKENS=${NUM_SPEC_TOKENS:-${SP_TOK_DEFAULT}}
 
@@ -48,7 +49,7 @@ echo "  Context: ${MAX_MODEL_LEN}"
 echo "  GPU Mem: ${GPU_MEM_UTIL}"
 echo "  Quant: AWQ 4-bit"
 echo "  MTP:  ${NUM_SPEC_TOKENS} draft tokens"
-echo "  Vision: ENABLED — Qwen3.6 has native vision encoder"
+echo "  Vision: $([ "${LANGUAGE_ONLY}" = "true" ] && echo "OFF (text only)" || echo "ON")"
 echo ""
 
 ARGS=(
@@ -66,6 +67,11 @@ ARGS=(
   "--enforce-eager"
   "--served-model-name" "cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit"
 )
+
+# Vision encoder (default: on)
+if [ "${LANGUAGE_ONLY}" = "true" ]; then
+  ARGS+=("--language-model-only")
+fi
 
 # MTP (Multi Token Prediction)
 if [ "${NUM_SPEC_TOKENS}" -gt 0 ]; then
