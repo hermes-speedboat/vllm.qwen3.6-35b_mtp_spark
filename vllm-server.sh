@@ -64,7 +64,6 @@ ARGS=(
     "--enable-auto-tool-choice"
     "--tool-call-parser" "hermes"
     "--enforce-eager"
-    "--default-chat-template-kwargs" '{"enable_thinking": false}'
 )
 
 # Vision encoder off (text-only)
