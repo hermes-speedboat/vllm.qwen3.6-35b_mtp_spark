@@ -63,6 +63,7 @@ ARGS=(
     "--dtype" "float16"
     "--enable-auto-tool-choice"
     "--tool-call-parser" "hermes"
+    "--enforce-eager"
     "--default-chat-template-kwargs" '{"enable_thinking": false}'
 )
 
