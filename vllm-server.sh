@@ -62,7 +62,7 @@ ARGS=(
     "--quantization" "awq"
     "--dtype" "float16"
     "--enable-auto-tool-choice"
-    "--tool-call-parser" "hermes"
+    "--tool-call-parser" "qwen3_coder"
     "--enforce-eager"
     "--served-model-name" "cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit"
 )
