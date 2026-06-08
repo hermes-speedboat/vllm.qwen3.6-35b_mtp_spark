@@ -37,7 +37,7 @@ bash vllm-server.sh        # start server on port 8000
 
 - **Reasoning:** Extracted to separate `reasoning` field via `--reasoning-parser qwen3` — clean content
 - **Tool calling:** Native OpenAI `tool_calls` via `--tool-call-parser qwen3_coder`
-- **Text-only:** Vision encoder disabled (`--language-model-only`)
+- **Vision:** On by default (Qwen3.6 has native vision encoder). Set `LANGUAGE_ONLY=true` to disable and save memory
 - **MTP:** Speculative decoding with 2 draft tokens (`--speculative-config`)
 - **No CUDA graphs:** `--enforce-eager` for instant first-request response
 - **Model name:** Served as `cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit` (not filesystem path)
